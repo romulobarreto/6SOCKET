@@ -34,7 +34,8 @@ class Servidor:
                 break
 
         print(f"🚪 Cliente {endereco} saiu.")
-        self.clientes.remove(cliente_socket)
+        if cliente_socket in self.clientes:
+            self.clientes.remove(cliente_socket)
         cliente_socket.close()
 
 
@@ -42,9 +43,10 @@ class Servidor:
         for cliente in self.clientes:
             if cliente != remetente:
                 try:
-                    cliente.sedall(mensagem)
+                    cliente.sendall(mensagem)
                 except:
-                    self.clientes.remove(cliente)
+                    if cliente in self.clientes:
+                        self.clientes.remove(cliente)
                     cliente.close()
 
 
