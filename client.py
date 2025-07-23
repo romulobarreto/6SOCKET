@@ -1,51 +1,24 @@
 import socket
 import threading
-
-class Cliente:
-    def __init__(self, host="localhost", porta=12345):
-        self.host = host
-        self.porta = porta
-        self.nome = input("Digite seu nome + sobrenome: ").strip().title()
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+from tkinter import *
+import tkinter
+from tkinter import simpledialog
 
 
-    def conectar(self):
-        try:
-            self.socket.connect((self.host, self.porta))
-            print(f"✅ Conectado ao servidor!")
-        except:
-            print("❌ Não foi possível conectar ao servidor.")
-            return
-        
-        # Receber mensagens dos outros
-        thread_receber = threading.Thread(target=self.receber_mensagens)
-        thread_receber.start()
+class Chat:
+    def __init__(self):
+        HOST = 'localhost'
+        PORT = 55555
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client.connect((HOST, PORT))
 
-        # Enviar mensagens ao servidor
-        self.enviar_mensagens()
+        login = Tk()
+        login.withdraw()
 
+        self.janela_carregada = False
+        self.ativo = True
 
-    def enviar_mensagens(self):
-        while True:
-            mensagem = input()
-            if mensagem.lower().strip() == "quit":
-                self.socket.close()
-                print("🚪 Desconectado.")
-                break
-            mensagem_formatada = f"{self.nome}: {mensagem}"
-            self.socket.sendall(mensagem_formatada.encode())
+        self.nome = simpledialog.askstring('Nome', 'Digite seu nome!', parent=login)
+        self.sala = simpledialog.askstring('Sala', 'Digite a sala que deseja entrar!', parent=login)
 
-    def receber_mensagens(self):
-        while True:
-            try:
-                mensagem = self.socket.recv(1024).decode()
-                if not mensagem:
-                    break
-                print(mensagem)
-            except:
-                break
-
-
-if __name__ == "__main__":
-    cliente = Cliente()
-    cliente.conectar()
+chat = Chat()

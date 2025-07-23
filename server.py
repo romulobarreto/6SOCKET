@@ -1,55 +1,36 @@
 import socket
 import threading
 
-class Servidor:
-    def __init__(self, host="localhost", porta=12345):
-        self.host = host
-        self.porta = porta
-        self.clientes = []
-        self.servidor_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+HOST = 'localhost'
+PORT = 55555
 
-    def iniciar(self):
-        self.servidor_socket.bind((self.host, self.porta))
-        self.servidor_socket.listen()
-        print(f"🔌 Servidor ouvindo em {self.host}:{self.porta}")
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind((HOST, PORT))
+server.listen()
 
-        while True:
-            cliente_socket, endereco = self.servidor_socket.accept()
-            print(f"🧍 Cliente conectado: {endereco}")
-            self.clientes.append(cliente_socket)
+salas = {}
 
-            thread = threading.Thread(target=self.organizar_cliente, args=(cliente_socket, endereco))
-            thread.start()
+def broadcast(sala, mensagem):
+    for i in salas[sala]:
+        if isinstance(mensagem, str):
+            mensagem = mensagem.encode()
+        i.send(mensagem)
 
-    def organizar_cliente(self, cliente_socket, endereco):
-        while True:
-            try:
-                mensagem = cliente_socket.recv(1024)
-                if not mensagem:
-                    break
+def enviar_mensagem(nome, sala, client):
+    while True:
+        mensagem = client.recv(1024)
+        mensagem = f"{nome}: {mensagem.decode()}\n"
+        broadcast(sala, mensagem)
 
-                print(f"💬 Mensagem de {endereco}: {mensagem.decode()}")
-                self.broadcast(mensagem, cliente_socket)
-            except:
-                break
-
-        print(f"🚪 Cliente {endereco} saiu.")
-        if cliente_socket in self.clientes:
-            self.clientes.remove(cliente_socket)
-        cliente_socket.close()
-
-
-    def broadcast(self, mensagem, remetente):
-        for cliente in self.clientes:
-            if cliente != remetente:
-                try:
-                    cliente.sendall(mensagem)
-                except:
-                    if cliente in self.clientes:
-                        self.clientes.remove(cliente)
-                    cliente.close()
-
-
-if __name__ == "__main__":
-    servidor = Servidor()
-    servidor.iniciar()
+while True:
+    client, address = server.accept()
+    client.send(b'SALA')
+    sala = client.recv(1024).decode()
+    nome = client.recv(1024).decode()
+    if sala not in salas.keys():
+        salas[sala] = []
+    salas[sala].append(client)
+    print(f'✅ O cliente {nome.title()} conectou-se na sala {sala.title()}! INFO: {address}')
+    broadcast(sala, f'{nome}: Entrou na sala!')
+    thread = threading.Thread(target=enviar_mensagem, args=(nome, sala, client))
+    thread.start()
