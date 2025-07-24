@@ -85,4 +85,4 @@ Este é um sistema de chat em rede desenvolvido em Python, utilizando sockets pa
 
 ## 👨‍💻 Autor
 
-Desenvolvido por `Rômulo Barreto da Silva ❤️
+Desenvolvido por `Rômulo Barreto da Silva` ❤️
